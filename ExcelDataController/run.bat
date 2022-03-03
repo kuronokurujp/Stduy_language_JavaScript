@@ -1,0 +1,2 @@
+cscript create_table.js
+pause

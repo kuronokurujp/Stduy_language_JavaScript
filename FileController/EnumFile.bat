@@ -1,0 +1,2 @@
+cscript EnumFile.js
+pause

@@ -1,0 +1,2 @@
+cscript Encryption.js
+pause
