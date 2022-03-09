@@ -190,7 +190,12 @@ class ControllerAndView
     constructor()
     {
         this._player_bar = new PlayerBar();
-        this._ball = new Ball();
+
+        this._max_ball_count = 10;
+        this._balls = new Array(this._max_ball_count);
+        this._balls[0] = new Ball();
+        this._exist_ball_count = 1;
+
         this._field = new Field();
     }
 
@@ -209,7 +214,7 @@ class ControllerAndView
                 if (tapC == 1)
                 {
                     this._player_bar.Init(this._field._size_w * 0.5, this._field._size_h * 0.875);
-                    this._ball.Init(this._field._size_w * 0.5, this._field._size_h * 0.375);
+                    this._balls[0].Init(this._field._size_w * 0.5, this._field._size_h * 0.375);
 
                     this._model.SetScene(1);
                     this._model.SetScore(0);
@@ -219,13 +224,17 @@ class ControllerAndView
             }
             case 1:
             {
-                this._ball.Move();
+                for (var i = 0; i < this._exist_ball_count; ++i)
+                {
+                    var ref_ball = this._balls[i];
+                    ref_ball.Move();
+                    if (this._field.HitFieldLeftLine(ref_ball._x) || this._field.HitFieldRightLine(ref_ball._x))
+                        ref_ball.SetXVec(-ref_ball._x_vec);
 
-                if (this._field.HitFieldLeftLine(this._ball._x) || this._field.HitFieldRightLine(this._ball._x))
-                    this._ball.SetXVec(-this._ball._x_vec);
+                    if (this._field.HitFieldTopLine(ref_ball._y))
+                        ref_ball.SetYVec(8 + rnd(8));
+                }
 
-                if (this._field.HitFieldTopLine(this._ball._y))
-                    this._ball.SetYVec(8 + rnd(8));
 
                 this._player_bar.SetX(tapX);
 
@@ -234,19 +243,35 @@ class ControllerAndView
                 if (this._player_bar.GetX(0) < min_x) this._player_bar.SetX(min_x);
                 if (this._player_bar.GetX(0) > max_x) this._player_bar.SetX(max_x);
 
-                if (this._ball._y >= this._field._size_h)
+                for (var i = 0; i < this._exist_ball_count; ++i)
                 {
-                    tapC = 0;
-                    this._model.SetScene(2);
-                }
-                else
-                if (this._player_bar.GetX(1) < this._ball._x && this._ball._x < this._player_bar.GetX(2))
-                {
-                    if (this._player_bar.GetY(1) < this._ball._y && this._ball._y < this._player_bar.GetY(2))
+                    var ref_ball = this._balls[i];
+                    if (ref_ball._y >= this._field._size_h)
                     {
-                        this._ball.SetYVec(-8 - rnd(8));
-                        this._model.SetScore(this._model._score + 100);
-                        playSE(this._model._hit_se_no);
+                        tapC = 0;
+                        this._model.SetScene(2);
+                    }
+                    else
+                    if (this._player_bar.GetX(1) < ref_ball._x && ref_ball._x < this._player_bar.GetX(2))
+                    {
+                        if (this._player_bar.GetY(1) < ref_ball._y && ref_ball._y < this._player_bar.GetY(2))
+                        {
+                            ref_ball.SetYVec(-8 - rnd(8));
+                            this._model.SetScore(this._model._score + 100);
+                            playSE(this._model._hit_se_no);
+                        }
+                    }
+                }
+
+                // スコアが上がったら弾を増やす
+                if (this._exist_ball_count < this._max_ball_count)
+                {
+                    var next_level_exp = (this._exist_ball_count * this._exist_ball_count) * 1000;
+                    if (next_level_exp <= this._model._score)
+                    {
+                        this._balls[this._exist_ball_count] = new Ball();
+                        this._balls[this._exist_ball_count].Init(this._field._size_w * 0.5, this._field._size_h * 0.375);
+                        ++this._exist_ball_count;
                     }
                 }
 
@@ -269,10 +294,16 @@ class ControllerAndView
     {
         drawImg(0, 0, 0);
         this._field.Draw();
-        this._ball.Draw();
+
+        for (var i = 0; i < this._exist_ball_count; ++i)
+        {
+            var ref_ball = this._balls[i];
+            ref_ball.Draw();
+        }
+
         this._player_bar.Draw();
 
-        fText("SCORE" + this._model._score, this._field._size_w * 0.5, this._field.size_h * 0.03125, 36, "white");
+        fText("SCORE" + this._model._score, this._field._size_w * 0.5, this._field._size_h * 0.03125, 36, "white");
         switch (this._model._scene)
         {
             case 0:
