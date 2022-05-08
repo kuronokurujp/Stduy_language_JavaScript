@@ -5,19 +5,17 @@ class GameObject
 {
     constructor()
     {
-        this._ssX = 0;
-        this._ssY = 0;
+        this._pos = new Vector2();
         this._b_del = true;
     }
 
-    get X() { return this._ssX; }
-    get Y() { return this._ssY; }
+    get X() { return this._pos.X; }
+    get Y() { return this._pos.Y; }
     get IsDel() { return this._b_del; }
 
     Init(in_x, in_y)
     {
-        this._ssX = in_x;
-        this._ssY = in_y;
+        this._pos.Set(in_x, in_y);
         this._b_del = false;
     }
 
@@ -28,14 +26,12 @@ class GameObject
 
     SetPosition(in_x, in_y)
     {
-        this._ssX = in_x;
-        this._ssY = in_y;
+        this._pos.Set(in_x, in_y);
     }
 
     AddPosition(in_vx, in_vy)
     {
-        this._ssX += in_vx;
-        this._ssY += in_vy;
+        this._pos.Add(new Vector2(in_vx, in_vy));
     }
 
     Update(in_game_timer) {}
@@ -48,6 +44,7 @@ class GameObject
 class PawnObject extends GameObject
 {
     get Radius() { return this._radius; }
+    get Tag() { return ""; }
 
     constructor()
     {
@@ -69,11 +66,17 @@ class PawnObject extends GameObject
         if (this._b_del)
             return;
 
-        drawImgC(this._image_no, this._ssX, this._ssY);
+        drawImgC(this._image_no, this.X, this.Y);
     }
+
+    IsHit(in_check_obj) { return true; }
+    IsTag(in_tag) { return (this.Tag === in_tag); }
 
     Hit(in_obj)
     {
+        if (!this.IsHit(in_obj))
+            return false;
+
         let dis = getDis(in_obj.X, in_obj.Y, this.X, this.Y);
         if (dis > (this.Radius + in_obj.Radius))
             return false;
@@ -95,6 +98,18 @@ class GameObjectManager
         {
             for (let i = 0; i < in_max_count; ++i)
                 this._obj[i] = null;
+        }
+    }
+
+    AllDestory()
+    {
+        for (let i = 0; i < this._obj.length; ++i)
+        {
+            if (this._obj[i] == null)
+                continue;
+
+            this._obj[i].Destory();
+            this._obj[i] = null;
         }
     }
 

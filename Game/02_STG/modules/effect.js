@@ -4,6 +4,7 @@
 class EffectType
 {
     static Expload = new EffectType("Expload");
+    static LittleExpload = new EffectType("LittleExpload");
 
     constructor(in_name) {
         this._name = in_name;
@@ -23,13 +24,13 @@ class EffectBase extends GameObject
 
 class EffectExploed extends EffectBase
 {
-    static sImgFilePath() { return "image/explode.png"; }
-    static sImgNo() { return 5; }
+    static ImgFilePath() { return "image/explode.png"; }
+    static ImgNo() { return 5; }
 
-    constructor()
+    constructor(in_img_start_idx)
     {
         super(EffectType.Expload);
-        this._img_idx = 0;
+        this._img_idx = in_img_start_idx;
         this._img_length = 9;
     }
 
@@ -46,9 +47,9 @@ class EffectExploed extends EffectBase
             return;
 
         drawImgTS(
-            EffectExploed.sImgNo(), (this._img_length - this._img_idx) * 128,
+            EffectExploed.ImgNo(), (this._img_length - this._img_idx) * 128,
             0, 128, 128,
-            this._ssX - 64, this._ssY - 64, 128, 128);
+            this.X - 64, this.Y - 64, 128, 128);
 
         --this._img_idx;
         if (this._img_idx < 0)
@@ -66,7 +67,11 @@ class EffectManager extends GameObjectManager
         let eff = null;
         switch (in_type._name) {
             case EffectType.Expload._name: {
-                eff = new EffectExploed();
+                eff = new EffectExploed(0);
+                break;
+            }
+            case EffectType.LittleExpload._name: {
+                eff = new EffectExploed(6);
                 break;
             }
         }
